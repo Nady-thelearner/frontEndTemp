@@ -261,4 +261,7 @@ export class UserService {
 
     return null;
   }
+  updateCookie(name: string, value: string, days: number): void {
+    this.setCookie(name, value, days);
+  }
 }
