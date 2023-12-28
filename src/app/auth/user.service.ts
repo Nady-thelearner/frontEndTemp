@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { loginRes } from './login/loginRes.model';
@@ -21,6 +22,7 @@ export class UserService {
 
   private initialize() {
     // Initialization logic here
+    this.getUserData();
     const userID = this.getUserID().userId;
     this.token = this.getUserID().token;
     if (userID != '' || userID != null) {
@@ -122,6 +124,8 @@ export class UserService {
             this.SaveData(this.userId, this.token);
             this.authenticated = true;
             this.authStatus.next(true);
+            this.saveUserData();
+
             this.route.navigate(['/create-store']);
           } else {
             this.userId = res.data._id;
@@ -129,9 +133,10 @@ export class UserService {
             this.SaveData(this.userId, this.token);
             this.authenticated = true;
             this.authStatus.next(true);
+            this.saveUserData();
+            this.getUserData();
             this.route.navigate(['/user']);
           }
-          console.log('login success', this.token);
         },
         error: (error) => {
           console.log('error occured ');
@@ -147,6 +152,7 @@ export class UserService {
 
     this.userId = null;
     this.clearAuthData();
+    this.deleteCookie('uniqueUserId');
     // clearTimeout(this.tokenTimer);
     this.route.navigate(['/']);
   }
@@ -229,6 +235,62 @@ export class UserService {
       );
     }
   }
+
+  saveUserData() {
+    if (this.authenticated) {
+      const userId = this.getLocalData().userId;
+      const token = this.getLocalData().token;
+      const status = 'loggedIn';
+      const headers = new HttpHeaders({
+        authorization: this.token,
+      });
+
+      const options = {
+        headers: headers,
+      };
+      return this.http
+        .post<any>(
+          'http://localhost:3000/api/saveUserData',
+          { userId, token, status },
+          options
+        )
+        .subscribe((res) => {
+          console.log('addUserDatauserRes', res);
+          const userID = res.data._id;
+          // localStorage.setItem('uniqueUserId', userID);
+          this.setCookie('uniqueUserId', userID, 1);
+          console.log('unoiqueid cookeie', this.getCookie('uniqueUserId'));
+        });
+    } else {
+      return null;
+    }
+  }
+
+  getUserData(): any {
+    if (
+      this.getCookie('uniqueUserId')
+        ? this.getCookie('uniqueUserId') != ''
+        : false || this.getCookie('uniqueUserId')
+        ? this.getCookie('uniqueUserId') != null
+        : false || localStorage.getItem('uniqueUserId')
+        ? localStorage.getItem('uniqueUserId') != ''
+        : false || localStorage.getItem('uniqueUserId')
+        ? localStorage.getItem('uniqueUserId') != null
+        : false
+    ) {
+      const id = localStorage.getItem('uniqueUserId')
+        ? localStorage.getItem('uniqueUserId')
+        : this.getCookie('uniqueUserId');
+      console.log('inside id ', id);
+      this.http
+        .get<any>(`http://localhost:3000/api/getUserData?id=${id}`)
+        .subscribe((res) => {
+          (this.token = res.data.token), (this.userId = res.data.user_id);
+          this.SaveData(this.userId, this.token);
+          console.log('getUserDatauserRes', res);
+        });
+    }
+  }
   setCookie(name: string, value: string, days: number): void {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + days);
@@ -263,5 +325,9 @@ export class UserService {
   }
   updateCookie(name: string, value: string, days: number): void {
     this.setCookie(name, value, days);
+  }
+  deleteCookie(name: string) {
+    document.cookie =
+      name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
   }
 }

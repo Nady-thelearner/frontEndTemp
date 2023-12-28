@@ -17,6 +17,7 @@ export class StoreService {
   }
 
   private initialize() {
+    // this.userSF.getUserData();
     this.authenticated = this.userSF.getAuthenticated();
     if (this.authenticated) {
       this.token = this.userSF.getToken();

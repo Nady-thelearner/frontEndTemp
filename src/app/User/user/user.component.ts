@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { UserService } from 'src/app/auth/user.service';
 import { StoreService } from 'src/app/store/create-store/store.service';
 
 @Component({
@@ -7,7 +8,7 @@ import { StoreService } from 'src/app/store/create-store/store.service';
   styleUrls: ['./user.component.css'],
 })
 export class UserComponent implements OnInit {
-  constructor(private storeSF: StoreService) {}
+  constructor(private storeSF: StoreService, private userSF: UserService) {}
 
   storeDatas: any;
   ngOnInit(): void {
@@ -20,6 +21,4 @@ export class UserComponent implements OnInit {
       this.storeDatas = res.data;
     });
   }
-
-
 }
