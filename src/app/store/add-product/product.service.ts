@@ -20,7 +20,8 @@ export class productService {
     discount: string
   ) {
     if (this.userSF.getAuthenticated) {
-      const token = this.userSF.getToken();
+      var token = this.userSF.getToken();
+
       console.log('tokken...', token);
       const headers = new HttpHeaders({
         authorization: token,
@@ -53,6 +54,9 @@ export class productService {
     console.log('get product triggered...', vendor_id);
     if (this.userSF.getAuthenticated) {
       var token = this.userSF.getToken();
+      this.userSF.getTokenN().subscribe((token) => {
+        var token = token;
+      });
       console.log('fetch prooduct triggered......', token);
       const headers = new HttpHeaders({
         authorization: token,
@@ -88,10 +92,7 @@ export class productService {
   addCartDetails(product_Id: string) {
     this.productIds.push(product_Id);
     console.log('product added..', this.productIds);
-
     this.userSF.addToCart();
-    this.userSF.setCookie('test', 'data1', 1);
-    console.log("cookie cvlaue",this.userSF.getCookie('test'));
   }
 
   removeFromCart(product_id: string) {

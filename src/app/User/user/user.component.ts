@@ -16,9 +16,13 @@ export class UserComponent implements OnInit {
   }
 
   fetchStores() {
-    this.storeSF.fetchAllStore().subscribe((res) => {
-      console.log('store data', res);
-      this.storeDatas = res.data;
+    this.userSF.getTokenN().subscribe((token) => {
+      var token = token;
+
+      this.storeSF.fetchAllStore().subscribe((res) => {
+        console.log('store data', res);
+        this.storeDatas = res.data;
+      });
     });
   }
 }

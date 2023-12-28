@@ -18,9 +18,13 @@ export class StoreService {
 
   private initialize() {
     // this.userSF.getUserData();
+
     this.authenticated = this.userSF.getAuthenticated();
     if (this.authenticated) {
-      this.token = this.userSF.getToken();
+      // this.token = this.userSF.getToken();
+      this.userSF.getTokenN().subscribe((token) => {
+        this.token = token;
+      });
     }
   }
   createStore(
@@ -73,6 +77,7 @@ export class StoreService {
       };
       return this.http.get('http://localhost:3000/api/get-store', options);
     }
+    return null;
   }
 
   fetchAllStore() {
