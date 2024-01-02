@@ -1,5 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { CookieService } from 'ngx-cookie-service';
+import { cryptoService } from 'src/app/auth/crypto.service';
 import { UserService } from 'src/app/auth/user.service';
 
 @Injectable({ providedIn: 'root' })
@@ -7,7 +9,12 @@ export class productService {
   productIds = [];
   vendor_id: string;
   productDetails: any[];
-  constructor(private http: HttpClient, private userSF: UserService) {}
+  constructor(
+    private http: HttpClient,
+    private userSF: UserService,
+    private cryptoSF: cryptoService,
+    private cookieService: CookieService
+  ) {}
 
   addProduct(
     productName: string,
@@ -20,7 +27,8 @@ export class productService {
     discount: string
   ) {
     if (this.userSF.getAuthenticated) {
-      const token = this.userSF.getToken();
+      var token = this.userSF.getToken();
+
       console.log('tokken...', token);
       const headers = new HttpHeaders({
         authorization: token,
@@ -44,16 +52,16 @@ export class productService {
   getVendorID() {
     return this.vendor_id;
   }
-  clearVendorID() {
-    this.vendor_id = '';
-  }
 
   getProducts(vendor_id: string): any {
     this.vendor_id = vendor_id;
-    console.log('get product triggered...', vendor_id);
+    // console.log('get product triggered...', vendor_id);
     if (this.userSF.getAuthenticated) {
       var token = this.userSF.getToken();
-      console.log('fetch prooduct triggered......', token);
+      this.userSF.getTokenN().subscribe((token) => {
+        var token = token;
+      });
+      // console.log('fetch prooduct triggered......', token);
       const headers = new HttpHeaders({
         authorization: token,
       });
@@ -70,7 +78,7 @@ export class productService {
   getOneProduct(product_id: string): any {
     if (this.userSF.getAuthenticated) {
       var token = this.userSF.getToken();
-      console.log('fetch prooduct triggered......', token);
+      // console.log('fetch prooduct triggered......$', token);
       const headers = new HttpHeaders({
         authorization: token,
       });
@@ -88,10 +96,17 @@ export class productService {
   addCartDetails(product_Id: string) {
     this.productIds.push(product_Id);
     console.log('product added..', this.productIds);
+    //-----------------
+    const productIDArr = JSON.stringify(this.productIds);
+    const encryptedArr = this.cryptoSF.encrypt(productIDArr);
+    this.userSF.setCookie('productId', encryptedArr, 1);
+    // const decryptedArr = this.cryptoSF.decrypt(
+    //   this.userSF.getCookie('productId')
+    // );
+    // console.log('product id cookies', decryptedArr);
 
+    //------------------------
     this.userSF.addToCart();
-    this.userSF.setCookie('test', 'data1', 1);
-    console.log("cookie cvlaue",this.userSF.getCookie('test'));
   }
 
   removeFromCart(product_id: string) {
@@ -99,17 +114,38 @@ export class productService {
 
     if (indexToRemove !== -1) {
       this.productIds.splice(indexToRemove, 1);
+
+      //-----------------
+      const productIDArr = JSON.stringify(this.productIds);
+      const encryptedArr = this.cryptoSF.encrypt(productIDArr);
+      this.userSF.setCookie('productId', encryptedArr, 1);
+      // const decryptedArr = this.cryptoSF.decrypt(
+      //   this.userSF.getCookie('productId')
+      // );
+      // console.log('product id cookies on delete', decryptedArr);
+
+      //------------------------
     }
   }
 
   getCartDetails() {
+    if (this.cookieService.check('productId')) {
+      const decryptedArr = this.cryptoSF.decrypt(
+        this.userSF.getCookie('productId')
+      );
+      // console.log('decrypted Array', decryptedArr);
+      const jsonArr = JSON.parse(decryptedArr);
+      this.productIds = jsonArr;
+      // console.log('decrypted Array jsonArr', jsonArr);
+      var len = jsonArr.length;
+    }
     return this.productIds;
   }
 
   addproductDetails(productDetails: any[]): any {
     if (this.userSF.getAuthenticated) {
       var token = this.userSF.getToken();
-      console.log('fetch prooduct triggered......', token);
+      console.log('fetch prooduct triggered......12', token);
       const headers = new HttpHeaders({
         authorization: token,
       });
@@ -125,12 +161,5 @@ export class productService {
       );
     }
     return null;
-  }
-  temporaryDataStore(productDetails: any[]) {
-    this.productDetails = productDetails;
-    console.log(this.productDetails, 'product Details');
-  }
-  getTempData() {
-    return this.productDetails;
   }
 }

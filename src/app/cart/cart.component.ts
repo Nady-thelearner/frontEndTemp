@@ -3,6 +3,8 @@ import { UserService } from 'src/app/auth/user.service';
 import { productService } from 'src/app/store/add-product/product.service';
 import { ThemePalette } from '@angular/material/core';
 import { ProgressBarMode } from '@angular/material/progress-bar';
+import { cryptoService } from '../auth/crypto.service';
+import { CookieService } from 'ngx-cookie-service';
 
 @Component({
   selector: 'app-cart',
@@ -24,12 +26,12 @@ export class CartComponent implements OnInit, OnDestroy {
   constructor(
     private productSF: productService,
     private userSF: UserService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private cryptoSF: cryptoService
   ) {}
 
   ngOnInit(): void {
     this.vendor_id = this.productSF.getVendorID();
-    console.log('cart', this.cartItemCount);
     this.userSF.cartItem$.subscribe((count) => {
       this.cartItemCount = count;
       this.cdr.detectChanges();
@@ -86,7 +88,9 @@ export class CartComponent implements OnInit, OnDestroy {
       });
     }
     console.log('triggereed destroy', comp);
-    this.productSF.temporaryDataStore(comp);
+    console.log('encryptedData', this.cryptoSF.encrypt(comp));
+    const encryptedData = this.cryptoSF.encrypt(comp);
+    this.userSF.setCookie('userCartDet', encryptedData, 1);
   }
 
   private calcPP(price: number, discount: number, noOfProduct: number) {

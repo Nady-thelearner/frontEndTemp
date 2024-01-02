@@ -14,7 +14,8 @@ export class VisitStoreComponent {
   @Output() valueChanged: EventEmitter<string> = new EventEmitter<string>();
   constructor(
     private route: ActivatedRoute,
-    private productSF: productService
+    private productSF: productService,
+    private userSF: UserService
   ) {
     this.route.queryParams.subscribe((params) => {
       console.log('vendor Id on ng it ', params['vendorId']);
@@ -22,22 +23,22 @@ export class VisitStoreComponent {
         this.vendorId = params['vendorId'];
         console.log('vendor Id on ng it ', params['vendorId']);
 
-        this.productSF.getProducts(params['vendorId']).subscribe((res) => {
-          console.log('fetch products vist store component', res);
-          if (res) {
-            this.storeData = res.data;
-            console.log('store data', this.storeData);
-          }
+        this.userSF.getTokenN().subscribe((token) => {
+          var token = token;
+
+          this.productSF.getProducts(params['vendorId']).subscribe((res) => {
+            console.log('fetch products vist store component', res);
+            if (res) {
+              this.storeData = res.data;
+              console.log('store data', this.storeData);
+            }
+          });
         });
 
-        // this.storeData = this.getStoreDataById(params.storeId);
       }
     });
   }
 
-  clearVendorId() {
-    this.productSF.clearVendorID();
-  }
 
   addToCart(item: any) {
     this.productSF.addCartDetails(item.product_id);

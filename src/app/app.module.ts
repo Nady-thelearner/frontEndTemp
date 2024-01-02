@@ -20,8 +20,6 @@ import { VisitStoreComponent } from './User/visit-store/visit-store.component';
 import { CartComponent } from './cart/cart.component';
 import { AddressComponent } from './address/address.component';
 
-
-
 @NgModule({
   declarations: [
     AppComponent,
@@ -36,7 +34,7 @@ import { AddressComponent } from './address/address.component';
     UserComponent,
     VisitStoreComponent,
     CartComponent,
-    AddressComponent
+    AddressComponent,
   ],
   imports: [
     BrowserModule,

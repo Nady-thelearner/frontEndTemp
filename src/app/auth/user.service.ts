@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map, of } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { loginRes } from './login/loginRes.model';
 import { resetRes } from './reset-pass/reset-pass.model';
 import { Router } from '@angular/router';
+import { cryptoService } from './crypto.service';
+import { CookieService } from 'ngx-cookie-service';
 
 const BACK_END_URL = 'http://localhost:3000/api/register';
 
@@ -16,13 +18,26 @@ export class UserService {
   private authStatus = new Subject<boolean>();
   private cartItemsSubject = new BehaviorSubject<number>(0);
   cartItem$ = this.cartItemsSubject.asObservable();
-  constructor(private http: HttpClient, private route: Router) {
+  constructor(
+    private http: HttpClient,
+    private route: Router,
+    private cryptoSF: cryptoService,
+    private cookieService: CookieService
+  ) {
     this.initialize();
   }
 
   private initialize() {
+    if (this.cookieService.check('productId')) {
+      const decryptedArr = this.cryptoSF.decrypt(this.getCookie('productId'));
+      // console.log('decrypted Array', decryptedArr);
+      const jsonArr = JSON.parse(decryptedArr);
+      // console.log('decrypted Array jsonArr', jsonArr);
+      var len = jsonArr.length;
+      this.cartItemsSubject.next(len);
+    }
     // Initialization logic here
-    this.getUserData();
+    this.getUserDataN();
     const userID = this.getUserID().userId;
     this.token = this.getUserID().token;
     if (userID != '' || userID != null) {
@@ -57,6 +72,10 @@ export class UserService {
   getToken() {
     return this.token;
   }
+  getTokenN(): Observable<any> {
+    return this.getUserDataN().pipe(map(() => this.token));
+  }
+
   getAuthStatus() {
     return this.authStatus.asObservable();
   }
@@ -134,7 +153,7 @@ export class UserService {
             this.authenticated = true;
             this.authStatus.next(true);
             this.saveUserData();
-            this.getUserData();
+            // this.getUserData();
             this.route.navigate(['/user']);
           }
         },
@@ -266,32 +285,45 @@ export class UserService {
     }
   }
 
-  getUserData(): any {
+  getUserDataN(): Observable<any> {
     if (
       this.getCookie('uniqueUserId')
         ? this.getCookie('uniqueUserId') != ''
         : false || this.getCookie('uniqueUserId')
         ? this.getCookie('uniqueUserId') != null
-        : false || localStorage.getItem('uniqueUserId')
-        ? localStorage.getItem('uniqueUserId') != ''
-        : false || localStorage.getItem('uniqueUserId')
-        ? localStorage.getItem('uniqueUserId') != null
         : false
     ) {
       const id = localStorage.getItem('uniqueUserId')
         ? localStorage.getItem('uniqueUserId')
         : this.getCookie('uniqueUserId');
-      console.log('inside id ', id);
-      this.http
-        .get<any>(`http://localhost:3000/api/getUserData?id=${id}`)
-        .subscribe((res) => {
-          (this.token = res.data.token), (this.userId = res.data.user_id);
-          this.SaveData(this.userId, this.token);
-          console.log('getUserDatauserRes', res);
-        });
+
+      var token = this.getLocalData().token;
+      var userId = this.getLocalData().userId;
+      // console.log('token 123', token, 'userID', userId, 'ID', id);
+      if (token == '' || userId == '' || token == null || userId == null) {
+        console.log('inside if $$');
+        return this.http
+          .get<any>(`http://localhost:3000/api/getUserData?id=${id}`)
+          .pipe(
+            map((res) => {
+              this.token = res.data.token;
+              this.userId = res.data.user_id;
+              this.SaveData(this.userId, this.token);
+              console.log('getUserDatauserRes$$', res);
+              return res;
+            })
+          );
+      } else {
+        this.token = token;
+        this.userId = userId;
+        return of(token);
+      }
+    } else {
+      return of(null);
     }
   }
-  setCookie(name: string, value: string, days: number): void {
+
+  setCookie(name: string, value: any, days: number): void {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + days);
 
@@ -323,7 +355,7 @@ export class UserService {
 
     return null;
   }
-  updateCookie(name: string, value: string, days: number): void {
+  updateCookie(name: string, value: any, days: number): void {
     this.setCookie(name, value, days);
   }
   deleteCookie(name: string) {
