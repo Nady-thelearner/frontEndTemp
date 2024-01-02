@@ -35,14 +35,10 @@ export class VisitStoreComponent {
           });
         });
 
-        // this.storeData = this.getStoreDataById(params.storeId);
       }
     });
   }
 
-  clearVendorId() {
-    this.productSF.clearVendorID();
-  }
 
   addToCart(item: any) {
     this.productSF.addCartDetails(item.product_id);
