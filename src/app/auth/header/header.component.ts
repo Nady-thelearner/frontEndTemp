@@ -29,7 +29,7 @@ export class HeaderComponent implements OnInit {
         .getAuthStatus()
         .subscribe((isAuth) => (this.isAuthenticated = isAuth));
       this.userSF.cartItem$.subscribe((count) => {
-        console.log('isVendor count', count);
+        // console.log('isVendor count', count);
         this.cartItemCount = count;
       });
 

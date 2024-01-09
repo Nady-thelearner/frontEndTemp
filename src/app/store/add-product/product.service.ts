@@ -15,7 +15,7 @@ export class productService {
     private cryptoSF: cryptoService,
     private cookieService: CookieService
   ) {
-    console.log('productSF triggered constructor ');
+    // console.log('productSF triggered constructor ');
     if (this.cookieService.check('productId')) {
       console.log('inside cookies logic ');
       const decryptedArr = this.cryptoSF.decrypt(
@@ -195,6 +195,31 @@ export class productService {
       var len = jsonArr.length;
     }
     return this.productIds;
+  }
+
+
+
+  updateCartVendStatus(status: string, uniqueRef: string) {
+    //
+    if (this.userSF.getAuthenticated) {
+      var token = this.userSF.getToken();
+      // const uniqueRef = '202401081223388993';
+      // const status = 'Order packed again!!';
+      const headers = new HttpHeaders({
+        authorization: token,
+      });
+
+      const options = {
+        headers: headers,
+      };
+
+      return this.http.post<any>(
+        `http://localhost:3000/api/update-vend-stat?uniqueRef=${uniqueRef}`,
+        { status },
+        options
+      );
+    }
+    return null;
   }
 
   getOderDetails() {

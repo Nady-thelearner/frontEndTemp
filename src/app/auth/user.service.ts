@@ -29,7 +29,7 @@ export class UserService {
   }
 
   private initialize() {
-    console.log('user service triggered');
+    // console.log('user service triggered');
     if (this.cookieService.check('productId')) {
       const decryptedArr = this.cryptoSF.decrypt(this.getCookie('productId'));
       const jsonArr = JSON.parse(decryptedArr);
@@ -315,6 +315,7 @@ export class UserService {
       return null;
     }
   }
+
   updateUserData(status: string) {
     if (this.authenticated) {
       const userId = this.getLocalData().userId;
@@ -391,7 +392,7 @@ export class UserService {
   }
 
   getProductIDNew(): Observable<any> {
-    console.log('observable triggered');
+    console.log('get Product ID change for vendor triggered');
     var userID = this.getUserID().userId;
 
     if (this.getAuthenticated) {

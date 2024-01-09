@@ -1,5 +1,24 @@
-<div class="cart centerN">
+<div class="container center">
+  <div class="addncartVal center">
+    <div *ngIf="productDetails[0]?.address && this.productPrice != 0">
+      <p>
+        <span class="spanEle">Delivery address : </span
+        >{{ productDetails[0]?.address }}
+      </p>
+    </div>
+    <p style="margin-left: 3rem" *ngIf="this.productPrice != 0">
+      <span class="spanEle"> Cart Value :</span> {{ productPrice }}
+    </p>
+  </div>
+  <div class="orderPacked" *ngIf="productDetails[0]?.status">
+    <p>
+      <span class="spanEle">Order Status : </span
+      >{{ productDetails[0]?.status }}
+    </p>
+  </div>
+</div>
 
+<div class="cart centerN">
   <div class="cart-card">
     <mat-card
       class="center"
@@ -14,11 +33,27 @@
       </mat-card-header>
     </mat-card>
   </div>
-  <div class="test"><p>test</p></div>
+
   <div class="cart-card center">
+    <div class="addncartVal">
+      <p *ngIf="uniqueId">
+        <span class="spanEle">Order Id : </span>{{ uniqueId }}
+      </p>
+      <button
+        mat-raised-button
+        style="margin-left: 2rem"
+        color="accent"
+        type="button"
+        *ngIf="!productDetails[0]?.status"
+        (click)="updateStatus()"
+      >
+        Mark as packed
+      </button>
+    </div>
     <mat-card
       class="center"
-      *ngFor="let product of productDetails; let i = index"
+      *ngFor="let product of productDetails; let i = index; last as isLast"
+      [style.margin-bottom.rem]="isLast ? 3 : 0"
     >
       <mat-card-header>
         <mat-card-title-group>
@@ -55,4 +90,3 @@
     </mat-card>
   </div>
 </div>
-
